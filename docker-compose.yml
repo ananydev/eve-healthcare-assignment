@@ -1,0 +1,24 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports: ["27017:27017"]
+    volumes: [mongo_data:/data/db]
+  server:
+    build: ./server
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/eve_healthcare
+      JWT_SECRET: change-this-in-production
+      CLIENT_URL: http://localhost:5173
+    depends_on: [mongo]
+    ports: ["5000:5000"]
+  client:
+    image: node:20-alpine
+    working_dir: /app
+    volumes: [./client:/app]
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on: [server]
+    ports: ["5173:5173"]
+volumes:
+  mongo_data:
